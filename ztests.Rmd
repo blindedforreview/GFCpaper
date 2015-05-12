@@ -1,0 +1,102 @@
+---
+title: "Differences in Estimates for 19 and 22 Year Olds"
+author: "Blinded For Review"
+date: "12 May 2015"
+output: 
+  html_document:
+    toc: true
+    theme: journal
+    number_sections: true
+---
+
+Differences in PSM estimates: 19 year Olds - 22 Year Olds
+--------------------------------------------------
+
+```{r preperation, echo=FALSE, warning=FALSE, message=FALSE}
+library(knitr)
+
+wbNames <- c("General", "Work", "Living", "Money","People",
+			 "Social", "Home","Career", "Future", "Independence",
+			 "Lesiure", "Location")
+
+z.test2 <- function(m1,m2,s1,s2,n1,n2,m0=0)
+{
+	
+	#calculate pooled standard errors
+	se <- sqrt(s1^2 + s2^2)
+	#t.test	
+	z <- (m1-m2-m0)/se 
+	pv <- pnorm(z)
+	sig <- ifelse(pv >.05, "", ifelse(pv > .01, "*", 
+		   ifelse(pv > .001, "**", "***")))
+	dat <- c(m1-m2, se, z,pv,sig)    
+	names(dat) <- c("Difference of means", "Std Error", "z", "p-value", "sig.")
+	return(dat) 
+}
+```
+
+
+
+```{r psm, echo=FALSE}
+m1 <- c(-.150, -.069, -.128, -.006, -.128, -.145, -.101, -.133, -.115,
+		-.156, -.125, -.070)
+m2 <- c(-.114,-.068,-.054,-.075,-.127,-.083,-.118,-.140,-.057,-.088,-.076,-.069)
+n1 = 10117
+n2 = 5502
+s1 <- c(.019, .020,.026,.021,.022,.020,
+		.020,.020,.021,.020,.021,.022)
+s2 <- c(.028,.042,.033,.037,.028,.033,
+		.025,.029,.037,.038,.030,.030)
+
+psmResults <- data.frame(m1,m2,s1,s2)
+psmResults$n1 <- n1
+psmResults$n2 <- n2
+
+temp <- list()
+for (i in 1:nrow(psmResults)){
+	temp[[i]] <-z.test2(psmResults[i,"m1"],psmResults[i,"m2"],psmResults[i,"s1"],
+			psmResults[i,"s2"],psmResults[i,"n1"],psmResults[i,"n2"])
+}
+
+out <- do.call(rbind, temp)
+out <- data.frame(apply(out[,1:4],2,function(x) round(as.numeric(x),3)),
+				  sig = out[,5])
+row.names(out) <- wbNames
+
+kable(out, format = 'markdown')
+```
+
+Differences in DID estimates: 19 year Olds - 22 Year Olds
+--------------------------------------------------
+```{r did, echo=FALSE, warning=FALSE, message=FALSE}
+m1 <- c(-.103, -.117, -.087, -.095, -.100, -.170,
+		-.103, -.107, -.143, -.130, -.193, -.074)
+m2 <- c(-.093, -.071, .012, -.034, -.079, -.070,
+		-.057, -.157, -.078, -.042, -.035, .049)
+n1 = 10117
+n2 = 5502
+s1 <- c(.031,.032,.031,.037,.030,.030,
+		.030,.032,.035,.031,.031,.030)
+s2 <- c(.029,.031,.033,.031,.030,.028,
+		.028,.029,.027,.031,.029,.029)
+
+psmResults <- data.frame(m1,m2,s1,s2)
+psmResults$n1 <- n1
+psmResults$n2 <- n2
+
+temp <- list()
+for (i in 1:nrow(psmResults)){
+	temp[[i]] <-z.test2(psmResults[i,"m1"],psmResults[i,"m2"],
+						psmResults[i,"s1"],
+						psmResults[i,"s2"],psmResults[i,"n1"],psmResults[i,"n2"])
+}
+
+out <- do.call(rbind, temp)
+out <- data.frame(apply(out[,1:4],2,function(x) round(as.numeric(x),3)),
+				  sig = out[,5])
+row.names(out) <- wbNames
+
+kable(out, format = 'markdown')
+
+```
+
